@@ -24,6 +24,21 @@
 #include "Arduino.h"
 #include "Receiver.h"
 
+#define RX_PACKET_LENGTH 8
+
+// Packets for 8 channels looks like this. 
+  // 10 chars (0-250)
+  // chr(254) terminated
+
+// 'Q' | THROTTLE | PITCH | ROLL | YAW | MODE | AUX1 | AUX2 | AUX3 | 254
+// ---------------------------------------------------------------------
+//  Q  |   120    |   0   |   0  | 250 | 250  |  0   |  0   |  0   |  ?
+
+// Declare globals for SerialCom.h
+byte rxChannelMap[] = {THROTTLE, YAXIS, XAXIS, ZAXIS, MODE, AUX1, AUX2, AUX3};
+byte rxBuffer[RX_PACKET_LENGTH];
+byte rxBytesReceived;
+
 void initializeReceiver(int nbChannel) {
 
   initializeReceiverParam(nbChannel);
@@ -35,8 +50,8 @@ void initializeReceiver(int nbChannel) {
   receiverZero[THROTTLE] = 0;
   receiverCommand[MODE] = 2000;
   receiverZero[MODE] = 0;
-  receiverCommand[AUX] = 2000;
-  receiverZero[AUX] = 0;
+  receiverCommand[AUX1] = 2000;
+  receiverZero[AUX1] = 0;
 }
 
 int getRawChannelValue(byte channel) {
@@ -45,6 +60,27 @@ int getRawChannelValue(byte channel) {
   
 void setChannelValue(byte channel,int value) {
   receiverCommand[channel] = value;
+}
+
+void readReceiverPC() {
+  rxBytesReceived = 0;
+  
+  while (rxBytesReceived < RX_PACKET_LENGTH && SERIAL_AVAILABLE()) {
+    rxBuffer[rxBytesReceived] = SERIAL_READ();
+    rxBytesReceived++;
+  }
+  
+  // Only accept the packet if it's long enough and is terminated with char(254)
+  if (SERIAL_AVAILABLE()) {
+    int lastChar = SERIAL_READ();
+
+    if (lastChar == 254 && rxBytesReceived >= RX_PACKET_LENGTH) {
+      for (int i=0; i < RX_PACKET_LENGTH; i++) {
+        // We are packing ints up to 1000 into one byte, so we divide by four
+        setChannelValue(rxChannelMap[i], rxBuffer[i] * 4 + 1000);
+      }
+    }
+  }
 }
 
 

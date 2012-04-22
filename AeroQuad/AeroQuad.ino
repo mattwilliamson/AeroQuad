@@ -28,7 +28,6 @@
 
 #include "UserConfiguration.h" // Edit this file first before uploading to the AeroQuad
 
-
 //
 // In order to use the DIYDrone libraries, this have to be declared here this way
 // @see Kenny9999 for details
@@ -1292,7 +1291,7 @@ void setup() {
   #if defined(BinaryWrite) || defined(BinaryWritePID)
     #ifdef OpenlogBinaryWrite
       binaryPort = &Serial1;
-      binaryPort->begin(115200);
+      binaryPort->begin(BAUD);
       delay(1000);
     #else
      binaryPort = &Serial;

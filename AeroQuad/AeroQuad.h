@@ -33,9 +33,15 @@
 
 #if defined WirelessTelemetry
   #define BAUD 111111 // use this to be compatible with USB and XBee connections
-#else
-  #define BAUD 115200
 #endif  
+
+#ifdef RemotePCReceiver
+  #define BAUD 38400
+#endif
+
+#ifndef BAUD
+  #define BAUD 115200
+#endif
 
 // Analog Reference Value
 // This value provided from Configurator

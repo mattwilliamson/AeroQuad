@@ -220,6 +220,12 @@ void readSerialCommand() {
       #endif
       break;
       
+    #ifdef RemotePCReceiver
+    case 'Q': // Remote Joystick command
+      readReceiverPC();
+      break;
+    #endif
+      
     case 'U': // Range Finder
       #if defined (AltitudeHoldRangeFinder)
         maxRangeFinderRange = readFloatSerial();
